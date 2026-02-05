@@ -1,11 +1,13 @@
 from pathlib import Path
 import joblib
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, roc_auc_score
 
 from pm.data.load_data import load_training_data
 from pm.features.build_features import add_rul, add_binary_label
+from pm.features.time_series_features import add_rolling_features
+from pm.models.split import split_by_unit
+from pm.constants import SENSOR_FEATURES
 
 
 MODEL_DIR = Path("models")
@@ -18,22 +20,32 @@ def main():
     df = add_rul(df)
     df = add_binary_label(df, threshold=30)
 
-    print("Preparing features...")
-    feature_cols = [c for c in df.columns if "sensor_measurement" in c]
+    print("Adding rolling features...")
+    df = add_rolling_features(df, window=5)
 
-    X = df[feature_cols]
-    y = df["will_fail_soon"]
+    # Feature columns: raw sensors + rolling stats
+    feature_cols = []
+    feature_cols += SENSOR_FEATURES
+    feature_cols += [f"{c}_roll_mean_5" for c in SENSOR_FEATURES]
+    feature_cols += [f"{c}_roll_std_5" for c in SENSOR_FEATURES]
 
-    X_train, X_val, y_train, y_val = train_test_split(
-        X, y, test_size=0.2, random_state=42, stratify=y
-    )
+    print("Splitting by unit_number (no leakage)...")
+    train_df, val_df = split_by_unit(df, test_size=0.2, random_state=42)
+
+    X_train = train_df[feature_cols]
+    y_train = train_df["will_fail_soon"]
+
+    X_val = val_df[feature_cols]
+    y_val = val_df["will_fail_soon"]
+
+    print(f"Train engines: {train_df['unit_number'].nunique()} | Val engines: {val_df['unit_number'].nunique()}")
+    print(f"Train rows: {len(train_df)} | Val rows: {len(val_df)}")
 
     print("Training RandomForest model...")
     model = RandomForestClassifier(
-        n_estimators=150,
-        max_depth=None,
+        n_estimators=300,
         random_state=42,
-        n_jobs=-1
+        n_jobs=-1,
     )
     model.fit(X_train, y_train)
 
@@ -46,7 +58,6 @@ def main():
 
     model_path = MODEL_DIR / "rf_predictive_maintenance.joblib"
     joblib.dump(model, model_path)
-
     print(f"\nModel saved to {model_path.resolve()}")
 
 
