@@ -35,3 +35,11 @@ def test_predict_row_missing_field():
     payload = {"values": {f"sensor_measurement_{i}": 500.0 for i in range(1, 21)}}  # missing 21
     r = client.post("/predict_row", json=payload)
     assert r.status_code == 400
+
+def test_metrics_endpoint():
+    r = client.get("/metrics")
+    assert r.status_code == 200
+    data = r.json()
+    assert "total_requests" in data
+    assert "total_predictions" in data
+    assert "fail_soon_predictions" in data
