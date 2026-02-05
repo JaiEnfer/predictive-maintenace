@@ -2,14 +2,16 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from pm.constants import SENSOR_FEATURES
 
 MODEL_PATH = Path("models/rf_predictive_maintenance.joblib")
 
 if not MODEL_PATH.exists():
     raise FileNotFoundError(f"Model file not found at {MODEL_PATH.resolve()}")
 
-pipeline = joblib.load(MODEL_PATH)
+artifact = joblib.load(MODEL_PATH)
+pipeline = artifact["pipeline"]
+SENSOR_FEATURES = artifact["sensor_features"]
+
 
 
 def predict_failure(sensor_values: list[float]) -> tuple[int, float]:
