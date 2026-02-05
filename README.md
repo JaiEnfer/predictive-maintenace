@@ -129,8 +129,11 @@ docker run -p 8000:8000 ghcr.io/JaiEnfer/predictive-maintenance:latest
 ## 🎯 Key Engineering Practices
 
 ✔ Prevented training/serving skew by packaging preprocessing with the model
+
 ✔ Avoided data leakage using engine-level splits
+
 ✔ Built a stateless inference API while keeping feature logic consistent
+
 ✔ Implemented CI/CD for testing and Docker image publishing
 
 ---
