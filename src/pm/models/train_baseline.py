@@ -64,9 +64,15 @@ def main() -> None:
     print("ROC AUC:", roc_auc_score(y_val, probs))
 
     model_path = MODEL_DIR / "rf_predictive_maintenance.joblib"
-    joblib.dump(pipeline, model_path)
-    print(f"\nSaved pipeline to: {model_path.resolve()}")
 
+    artifact = {
+        "pipeline": pipeline,
+        "sensor_features": SENSOR_FEATURES,
+        "rolling_window": 5,
+    }
+
+    joblib.dump(artifact, model_path)
+    print(f"\nSaved pipeline artifact to: {model_path.resolve()}")
 
 if __name__ == "__main__":
     main()
