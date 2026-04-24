@@ -1,3 +1,10 @@
+![CI](https://github.com/JaiEnfer/predictive-maintenace/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-Production-00a393)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ed)
+![MLOps](https://img.shields.io/badge/MLOps-Predictive%20Maintenance-orange)
+![GHCR](https://img.shields.io/badge/GHCR-Automated%20Push-success)
+
 # Predictive Maintenance Monitoring System
 
 A production-style predictive maintenance application that accepts machine sensor readings, predicts whether maintenance is needed, tracks incoming data drift, and exposes everything through both an API and a browser dashboard.
