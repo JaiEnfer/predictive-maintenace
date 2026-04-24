@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.db import PredictionLog, SessionLocal, init_db
 from src.drift import generate_drift_report, get_drift_status
@@ -10,6 +12,8 @@ from src.retrain import retrain_safely
 from src.schemas import PredictRequest, PredictResponse
 
 model_service = ModelService()
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+INDEX_PATH = FRONTEND_DIR / "index.html"
 
 
 @asynccontextmanager
@@ -19,6 +23,12 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(title="ML Monitoring System", lifespan=lifespan)
+app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def index():
+    return FileResponse(INDEX_PATH)
 
 
 @app.get("/health")
@@ -30,18 +40,18 @@ def health():
 def predict(req: PredictRequest):
     row = req.model_dump()
     proba = model_service.predict_proba(row)
-    pred = 1 if proba >= 0.5 else 0
+    maintenance_required = proba >= 0.5
 
     # Log to SQLite
     db = SessionLocal()
     try:
         log = PredictionLog(
-            age=row["age"],
-            income=row["income"],
-            years_employed=row["years_employed"],
-            credit_score=row["credit_score"],
+            temperature_c=row["temperature_c"],
+            vibration_mm_s=row["vibration_mm_s"],
+            pressure_bar=row["pressure_bar"],
+            runtime_hours=row["runtime_hours"],
             probability=proba,
-            prediction=pred,
+            maintenance_required=int(maintenance_required),
             model_version=model_service.model_version,
         )
         db.add(log)
@@ -50,7 +60,7 @@ def predict(req: PredictRequest):
         db.close()
 
     return PredictResponse(
-        prediction=pred,
+        maintenance_required=maintenance_required,
         probability=proba,
         model_version=model_service.model_version,
     )

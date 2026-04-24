@@ -3,6 +3,14 @@ from fastapi.testclient import TestClient
 from src.app import app
 
 
+def test_index_page():
+    with TestClient(app) as client:
+        r = client.get("/")
+        assert r.status_code == 200
+        assert "text/html" in r.headers["content-type"]
+        assert "maintenance intelligence" in r.text.lower()
+
+
 def test_health():
     with TestClient(app) as client:
         r = client.get("/health")
@@ -15,14 +23,14 @@ def test_health():
 def test_predict():
     with TestClient(app) as client:
         payload = {
-            "age": 28,
-            "income": 32000,
-            "years_employed": 1,
-            "credit_score": 580,
+            "temperature_c": 112,
+            "vibration_mm_s": 18,
+            "pressure_bar": 145,
+            "runtime_hours": 8600,
         }
         r = client.post("/predict", json=payload)
         assert r.status_code == 200
         data = r.json()
-        assert "prediction" in data
+        assert "maintenance_required" in data
         assert "probability" in data
         assert 0.0 <= data["probability"] <= 1.0

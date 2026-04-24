@@ -14,22 +14,22 @@ def send_payload(payload: dict) -> None:
 
 
 def baseline_payload() -> dict:
-    # Similar to training distribution
+    # Similar to healthy operating conditions seen during training
     return {
-        "age": random.uniform(25, 45),
-        "income": random.uniform(35000, 75000),
-        "years_employed": random.uniform(1, 10),
-        "credit_score": random.uniform(600, 780),
+        "temperature_c": random.uniform(55, 85),
+        "vibration_mm_s": random.uniform(3, 10),
+        "pressure_bar": random.uniform(80, 110),
+        "runtime_hours": random.uniform(1500, 5000),
     }
 
 
 def shifted_payload() -> dict:
-    # Intentionally shifted distribution (should trigger drift)
+    # Intentionally shifted distribution for worn or stressed machinery
     return {
-        "age": random.uniform(55, 70),
-        "income": random.uniform(120000, 200000),
-        "years_employed": random.uniform(15, 35),
-        "credit_score": random.uniform(300, 520),
+        "temperature_c": random.uniform(95, 135),
+        "vibration_mm_s": random.uniform(14, 28),
+        "pressure_bar": random.uniform(125, 170),
+        "runtime_hours": random.uniform(7000, 12000),
     }
 
 

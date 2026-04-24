@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import joblib
 import pandas as pd
 
-MODEL_PATH = Path("artifacts") / "model.joblib"
+from src.settings import ARTIFACT_DIR
+from src.train import FEATURES, train
+
+MODEL_PATH = ARTIFACT_DIR / "model.joblib"
 
 
 class ModelService:
@@ -14,10 +15,11 @@ class ModelService:
 
     def load(self) -> None:
         if not MODEL_PATH.exists():
-            raise FileNotFoundError(
-                f"Model not found at {MODEL_PATH}. Run: python -m src.train"
-            )
+            train()
         self._bundle = joblib.load(MODEL_PATH)
+        if self._bundle.get("features") != FEATURES:
+            train()
+            self._bundle = joblib.load(MODEL_PATH)
     def reload(self) -> None:
         # same as load, but nicer name for runtime updates
         self.load()

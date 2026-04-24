@@ -14,10 +14,10 @@ def test_prediction_is_logged():
 
     with TestClient(app) as client:
         payload = {
-            "age": 30,
-            "income": 40000,
-            "years_employed": 2,
-            "credit_score": 600,
+            "temperature_c": 88,
+            "vibration_mm_s": 9,
+            "pressure_bar": 102,
+            "runtime_hours": 4200,
         }
         r = client.post("/predict", json=payload)
         assert r.status_code == 200

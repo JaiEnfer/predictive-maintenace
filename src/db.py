@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path
 
-from sqlalchemy import Column, DateTime, Float, Integer, String, create_engine
+from sqlalchemy import Column, DateTime, Float, Integer, String, create_engine, inspect
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-DB_PATH = Path("artifacts") / "predictions.db"
+from src.settings import ARTIFACT_DIR
+
+DB_PATH = ARTIFACT_DIR / "predictions.db"
 DB_URL = f"sqlite:///{DB_PATH.as_posix()}"
 
 Base = declarative_base()
@@ -19,14 +20,14 @@ class PredictionLog(Base):
     timestamp_utc = Column(DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     # features
-    age = Column(Float, nullable=False)
-    income = Column(Float, nullable=False)
-    years_employed = Column(Float, nullable=False)
-    credit_score = Column(Float, nullable=False)
+    temperature_c = Column(Float, nullable=False)
+    vibration_mm_s = Column(Float, nullable=False)
+    pressure_bar = Column(Float, nullable=False)
+    runtime_hours = Column(Float, nullable=False)
 
     # outputs
     probability = Column(Float, nullable=False)
-    prediction = Column(Integer, nullable=False)
+    maintenance_required = Column(Integer, nullable=False)
 
     # metadata
     model_version = Column(String, nullable=False)
@@ -38,8 +39,33 @@ def get_engine():
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=get_engine())
 
+EXPECTED_COLUMNS = {
+    "id",
+    "timestamp_utc",
+    "temperature_c",
+    "vibration_mm_s",
+    "pressure_bar",
+    "runtime_hours",
+    "probability",
+    "maintenance_required",
+    "model_version",
+}
+
+
+def _recreate_prediction_logs_if_needed(engine) -> None:
+    inspector = inspect(engine)
+    if "prediction_logs" not in inspector.get_table_names():
+        return
+
+    existing_columns = {column["name"] for column in inspector.get_columns("prediction_logs")}
+    if existing_columns == EXPECTED_COLUMNS:
+        return
+
+    PredictionLog.__table__.drop(bind=engine, checkfirst=True)
+
 
 def init_db() -> None:
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     engine = get_engine()
+    _recreate_prediction_logs_if_needed(engine)
     Base.metadata.create_all(bind=engine)

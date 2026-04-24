@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
 
 import joblib
 import numpy as np
@@ -11,7 +10,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
 
-ARTIFACT_DIR = Path("artifacts")
+from src.settings import ARTIFACT_DIR
+
 MODEL_PATH = ARTIFACT_DIR / "model.joblib"
 META_PATH = ARTIFACT_DIR / "meta.json"
 REFERENCE_PATH = ARTIFACT_DIR / "reference.csv"
@@ -19,8 +19,8 @@ VERSION_PATH = ARTIFACT_DIR / "version.json"
 
 
 
-FEATURES = ["age", "income", "years_employed", "credit_score"]
-TARGET = "defaulted"
+FEATURES = ["temperature_c", "vibration_mm_s", "pressure_bar", "runtime_hours"]
+TARGET = "maintenance_required"
 
 @dataclass
 class TrainResult:
@@ -29,30 +29,30 @@ class TrainResult:
 def make_synthetic_data(n: int = 5000, seed: int = 42) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
 
-    age = rng.normal(35, 10, n).clip(18, 70)
-    income = rng.normal(55000, 20000, n).clip(10000, 200000)
-    years_employed = rng.normal(6, 4, n).clip(0, 40)
-    credit_score = rng.normal(680, 60, n).clip(300, 850)
+    temperature_c = rng.normal(72, 18, n).clip(20, 150)
+    vibration_mm_s = rng.normal(8, 4, n).clip(0, 40)
+    pressure_bar = rng.normal(95, 20, n).clip(30, 180)
+    runtime_hours = rng.normal(4200, 1800, n).clip(100, 12000)
 
-
-    # Create a probability of default with a simple rule 
-    # Lower credit score + lower income + short employment => higher default chance
+    # Higher temperature, vibration, pressure excursions, and long runtime
+    # should increase the chance that the equipment needs maintenance.
     logits = (
-        -0.006 * (credit_score - 650)
-        -0.00002 * (income - 50000)
-        -0.08 * (years_employed - 5)
-        + 0.01 * (age - 35)
+        0.08 * (temperature_c - 75)
+        + 0.22 * (vibration_mm_s - 8)
+        + 0.03 * np.abs(pressure_bar - 95)
+        + 0.00055 * (runtime_hours - 4000)
+        - 3.1
     )
     prob = 1 / (1 + np.exp(-logits))
     y = rng.binomial(1, prob)
 
     df = pd.DataFrame(
         {
-            "age": age,
-            "income": income,
-            "years_employed": years_employed,
-            "credit_score": credit_score,
-            "defaulted": y,
+            "temperature_c": temperature_c,
+            "vibration_mm_s": vibration_mm_s,
+            "pressure_bar": pressure_bar,
+            "runtime_hours": runtime_hours,
+            "maintenance_required": y,
         }
     )
     return df

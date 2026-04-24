@@ -9,13 +9,12 @@ from evidently.metric_preset import DataDriftPreset
 from evidently.report import Report
 
 from src.db import get_engine
+from src.settings import ARTIFACT_DIR, REPORTS_DIR
 
-ARTIFACT_DIR = Path("artifacts")
 REFERENCE_PATH = ARTIFACT_DIR / "reference.csv"
-REPORTS_DIR = Path("reports")
 DRIFT_REPORT_PATH = REPORTS_DIR / "drift_report.html"
 
-FEATURES = ["age", "income", "years_employed", "credit_score"]
+FEATURES = ["temperature_c", "vibration_mm_s", "pressure_bar", "runtime_hours"]
 
 
 @dataclass

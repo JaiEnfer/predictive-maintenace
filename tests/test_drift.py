@@ -11,10 +11,10 @@ def test_drift_report_endpoint_generates_html():
         # Create some data points
         for _ in range(5):
             payload = {
-                "age": 25,
-                "income": 30000,
-                "years_employed": 1,
-                "credit_score": 550,
+                "temperature_c": 118,
+                "vibration_mm_s": 16,
+                "pressure_bar": 138,
+                "runtime_hours": 9100,
             }
             r = client.post("/predict", json=payload)
             assert r.status_code == 200
