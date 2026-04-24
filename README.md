@@ -1,9 +1,11 @@
-![CI](https://github.com/JaiEnfer/predictive-maintenace/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/JaiEnfer/ml-monitoring-system/actions/workflows/ci.yml/badge.svg)
+![Docker](https://img.shields.io/badge/Docker-Build%20Ready-blue)
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
-![FastAPI](https://img.shields.io/badge/FastAPI-Production-00a393)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ed)
-![MLOps](https://img.shields.io/badge/MLOps-Predictive%20Maintenance-orange)
-![GHCR](https://img.shields.io/badge/GHCR-Automated%20Push-success)
+![FastAPI](https://img.shields.io/badge/FastAPI-Production-green)
+![MLOps](https://img.shields.io/badge/MLOps-Drift%20Monitoring-orange)
+![GHCR](https://img.shields.io/badge/GHCR-Docker%20Image-success)
+![Lifecycle](https://img.shields.io/badge/ML%20Lifecycle-Train%20→%20Monitor%20→%20Retrain-purple)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-brightgreen)
 
 # Predictive Maintenance Monitoring System
 
