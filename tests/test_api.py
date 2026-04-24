@@ -1,36 +1,45 @@
 from fastapi.testclient import TestClient
+from pm.api.main import app
 
-from src.app import app
-
-
-def test_index_page():
-    with TestClient(app) as client:
-        r = client.get("/")
-        assert r.status_code == 200
-        assert "text/html" in r.headers["content-type"]
-        assert "maintenance intelligence" in r.text.lower()
-
+client = TestClient(app)
 
 def test_health():
-    with TestClient(app) as client:
-        r = client.get("/health")
-        assert r.status_code == 200
-        data = r.json()
-        assert data["status"] == "ok"
-        assert "model_version" in data
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.json()["status"] == "ok"
 
+def test_predict_valid_payload():
+    payload = {"sensor_values": [500.0] * 21}
+    r = client.post("/predict", json=payload)
+    assert r.status_code == 200
+    data = r.json()
+    assert "will_fail_soon" in data
+    assert "failure_probability" in data
+    assert data["will_fail_soon"] in (0, 1)
+    assert 0.0 <= data["failure_probability"] <= 1.0
 
-def test_predict():
-    with TestClient(app) as client:
-        payload = {
-            "temperature_c": 112,
-            "vibration_mm_s": 18,
-            "pressure_bar": 145,
-            "runtime_hours": 8600,
-        }
-        r = client.post("/predict", json=payload)
-        assert r.status_code == 200
-        data = r.json()
-        assert "maintenance_required" in data
-        assert "probability" in data
-        assert 0.0 <= data["probability"] <= 1.0
+def test_predict_invalid_length():
+    payload = {"sensor_values": [1.0] * 20}
+    r = client.post("/predict", json=payload)
+    assert r.status_code == 400
+
+def test_predict_row_valid_payload():
+    payload = {"values": {f"sensor_measurement_{i}": 500.0 for i in range(1, 22)}}
+    r = client.post("/predict_row", json=payload)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["will_fail_soon"] in (0, 1)
+    assert 0.0 <= data["failure_probability"] <= 1.0
+
+def test_predict_row_missing_field():
+    payload = {"values": {f"sensor_measurement_{i}": 500.0 for i in range(1, 21)}}  # missing 21
+    r = client.post("/predict_row", json=payload)
+    assert r.status_code == 400
+
+def test_metrics_endpoint():
+    r = client.get("/metrics")
+    assert r.status_code == 200
+    data = r.json()
+    assert "total_requests" in data
+    assert "total_predictions" in data
+    assert "fail_soon_predictions" in data

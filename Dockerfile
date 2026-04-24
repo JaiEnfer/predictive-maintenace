@@ -5,16 +5,15 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-COPY requirements.txt ./
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
+# Copy everything needed to install and run
+COPY pyproject.toml ./
 COPY src ./src
-COPY frontend ./frontend
+COPY models ./models
 
-RUN mkdir -p /tmp/ml-monitoring-system/artifacts /tmp/ml-monitoring-system/reports
-RUN python -m src.train
+# Install runtime deps (and your package)
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -e .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "pm.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
