@@ -2,18 +2,17 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies first (better caching)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Copy application code
+COPY requirements.txt ./
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
 COPY src ./src
+COPY frontend ./frontend
 
-# Create folders expected by the app
-RUN mkdir -p artifacts reports
-
-# Train model at build-time so the container is ready to serve immediately
-# (Good for portfolio demo; in production you might do this in a separate training pipeline.)
+RUN mkdir -p /tmp/ml-monitoring-system/artifacts /tmp/ml-monitoring-system/reports
 RUN python -m src.train
 
 EXPOSE 8000

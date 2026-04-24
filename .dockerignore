@@ -5,9 +5,17 @@ __pycache__/
 *.pyd
 .pytest_cache/
 .ruff_cache/
+.coverage
+dist/
+build/
+*.egg-info/
+.vscode/
 .git/
 .github/
 tests/
 notebooks/
 reports/
 artifacts/predictions.db
+artifacts/*.db
+artifacts/*.csv
+artifacts/*.joblib
